@@ -19,7 +19,7 @@ def select_excel_file(title="Please Select Excel File"):
     '''
     result = subprocess.run(
         ["osascript", "-e", script],
-        capture_output=True, text=True
+        capture_output=True, text=True, encoding="utf-8"
     )
     file_path = result.stdout.strip()
     if not file_path or not os.path.exists(file_path):
@@ -28,9 +28,9 @@ def select_excel_file(title="Please Select Excel File"):
 
 def show_macos_alert(title, message):
     script = f'''
-    display dialog "{message}" with title "{title}" buttons {{"确定"}} default button 1
+    display dialog "{message}" with title "{title}" buttons {{"OK"}} default button 1
     '''
-    subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+    subprocess.run(["osascript", "-e", script], capture_output=True, text=True, encoding="utf-8")
 
 def to_dic_head_index(sheet, row = 1): #输出表头的index字典（从1开始）
     index_lib_0 = {}
@@ -61,6 +61,8 @@ def parse_and_sum_allocation_string(s):
         except (ValueError, IndexError):
             #here是抓住ValueError, IndexError这两种错误吗？yes
             # 格式错误时跳过并打印提示
+            err_msg = f"Invalid format data: {item}\nThis row will be skipped"
+            show_macos_alert(title="Data Format Warning", message=err_msg)
             print(f"⚠️ 格式错误，跳过无效数据：{item}")
             continue
     return result
@@ -68,7 +70,7 @@ def parse_and_sum_allocation_string(s):
 if __name__ == "__main__":
     the_file_path = select_excel_file(title="Please Select the Build Matrix Config Excel File")
     if not the_file_path:
-        show_macos_alert("Operation Cancelled", "你未选择任何Excel文件，程序退出")
+        show_macos_alert("Operation Cancelled", "No Excel file selected, program exit")
         exit(0)
     file_p = Path(the_file_path)
     save_dir = file_p.parent
